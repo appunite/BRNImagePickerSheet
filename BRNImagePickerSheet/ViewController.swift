@@ -37,6 +37,7 @@ class ViewController: UIViewController, BRNImagePickerSheetDelegate, UIImagePick
         if buttonIndex != imagePickerSheet.cancelButtonIndex {
             if imagePickerSheet.showsSecondaryTitles {
                 println(imagePickerSheet.selectedPhotos)
+                imagePickerSheet.photoURLsForSelectedImages()
             }
             else {
                 let controller = UIImagePickerController()

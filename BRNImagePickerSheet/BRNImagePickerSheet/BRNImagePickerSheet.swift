@@ -213,13 +213,22 @@ enum BRNImagePickerSheetItemSize {
         for index in self.selectedPhotoIndices {
             
             if let asset = assets[index] as ALAsset? {
-                let url : NSURL = asset.valueForProperty(ALAssetPropertyAssetURL) as NSURL
-                urls.append(url);
+                
+                if let defaultRepresentation = asset.defaultRepresentation() {
+                    
+                    let orientation = UIImageOrientation(defaultRepresentation.orientation())
+                    
+                    if let photo = UIImage(CGImage: defaultRepresentation.fullScreenImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
+                        
+                        if let url : NSURL = self.saveImageOnDisk(photo) {
+                            urls.append(url);
+                        }
+                    }
+                
+                }
             }
-            
-// TODO: save on disk ?
         }
-        
+            
         return urls
     }
     

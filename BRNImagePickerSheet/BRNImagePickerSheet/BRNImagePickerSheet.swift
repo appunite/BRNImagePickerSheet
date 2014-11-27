@@ -486,6 +486,7 @@ enum BRNImagePickerSheetItemSize {
                     
                 } else {
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                        self.assets = reverse(self.assets)
                         self.tableView.reloadData();
                         self.collectionView.reloadData();
                     })

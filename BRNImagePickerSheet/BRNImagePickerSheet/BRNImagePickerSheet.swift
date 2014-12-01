@@ -285,9 +285,9 @@ enum BRNImagePickerSheetItemSize {
         }
         
         let cell = UITableViewCell(style: UITableViewCellStyle.Default , reuseIdentifier: "Cell")
-        cell.textLabel.textAlignment = .Center
-        cell.textLabel.textColor = self.tintColor
-        cell.textLabel.font = UIFont.systemFontOfSize(21)
+        cell.textLabel!.textAlignment = .Center
+        cell.textLabel!.textColor = self.tintColor
+        cell.textLabel!.font = UIFont.systemFontOfSize(21)
         
         let buttonIndex = self.buttonIndexForRow(indexPath.row)
         let (title, singularSecondaryTitle, pluralSecondaryTitle) = self.titles[buttonIndex]
@@ -308,7 +308,7 @@ enum BRNImagePickerSheetItemSize {
             cellTitle = cellTitle.stringByReplacingOccurrencesOfString(BRNImagePickerSheet.selectedPhotoCountPlaceholder, withString: photoCountString, options: .LiteralSearch, range:nil)
         }
         
-        cell.textLabel.text = cellTitle
+        cell.textLabel!.text = cellTitle
         
         return cell
     }

@@ -201,7 +201,7 @@ enum BRNImagePickerSheetItemSize {
         // get photo representation
     
         if let asset = assets[indexPath.section] as ALAsset? {
-            return UIImage(CGImage: asset.thumbnail().takeUnretainedValue())
+            return UIImage(CGImage: asset.aspectRatioThumbnail().takeUnretainedValue())
         }
         
         return nil;

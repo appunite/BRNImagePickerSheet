@@ -50,15 +50,20 @@ extension UIImageOrientation {
 enum BRNImagePickerSheetItemSize {
     case Normal, Enlarged
     
-    static func itemSizeForType(type : BRNImagePickerSheetItemSize) -> CGSize {
-    
+    static func itemSizeForType(type: BRNImagePickerSheetItemSize, image: UIImage?) -> CGSize {
+        var ratio: CGFloat = 1.0
+
+        if let _image = image {
+            ratio = _image.size.width/_image.size.height
+        }
+
         switch type {
             
         case .Normal:
-            return CGSize(width: 130.0, height: 130.0);
+            return CGSize(width: round(130.0 * ratio), height: 130.0);
             
         case .Enlarged:
-            return CGSize(width: 220.0, height: 220.0);
+            return CGSize(width: round(220.0 * ratio), height: 220.0);
             
         default:
             return CGSize(width: 0, height: 0);
@@ -368,18 +373,19 @@ enum BRNImagePickerSheetItemSize {
     // MARK: - UICollectionViewDelegateFlowLayout
     
     public func collectionView(collectionView: UICollectionView, layout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-
+        let image = photoAtIndexPath(indexPath)
+        
         if enlargedPreviews {
-            return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged);
+            return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: image);
         }
     
-        return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal);
+        return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: image);
     }
     
     public func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         let inset = 2.0 * BRNImagePickerSheet.collectionViewCheckmarkInset
 
-        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged) : BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal);
+        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: nil) : BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: nil);
         return CGSizeMake(BRNImageSupplementaryView.checkmarkImage.size.width, size.height)
     }
     

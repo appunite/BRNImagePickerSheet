@@ -50,11 +50,13 @@ extension UIImageOrientation {
 enum BRNImagePickerSheetItemSize {
     case Normal, Enlarged
     
-    static func itemSizeForType(type: BRNImagePickerSheetItemSize, image: UIImage?) -> CGSize {
+    static var itemsRatioCache = [Int : CGFloat]()
+
+    static func itemSizeForType(type: BRNImagePickerSheetItemSize, asset: ALAsset?, indexPath: NSIndexPath?) -> CGSize {
         var ratio: CGFloat = 1.0
 
-        if let _image = image {
-            ratio = _image.size.width/_image.size.height
+        if let _indexPath = indexPath {
+            ratio = ratioForAsset(asset, indexPath: _indexPath)
         }
 
         switch type {
@@ -68,6 +70,22 @@ enum BRNImagePickerSheetItemSize {
         default:
             return CGSize(width: 0, height: 0);
         }
+    }
+
+    static func ratioForAsset(asset: ALAsset?, indexPath: NSIndexPath) -> CGFloat {
+
+        if let ratio = itemsRatioCache[indexPath.section] {
+            return ratio
+        }
+
+        if let _asset = asset {
+            let ratio = _asset.defaultRepresentation().dimensions().width / _asset.defaultRepresentation().dimensions().height;
+            itemsRatioCache[indexPath.section] = ratio
+
+            return ratio
+        }
+
+        return 1.0
     }
 }
 
@@ -223,7 +241,7 @@ enum BRNImagePickerSheetItemSize {
                     
                     let orientation = UIImageOrientation(defaultRepresentation.orientation())
                     
-                    if let photo = UIImage(CGImage: defaultRepresentation.fullScreenImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
+                    if let photo = UIImage(CGImage: defaultRepresentation.fullResolutionImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
                         
                         if let url : NSURL = self.saveImageOnDisk(photo) {
                             urls.append(url);
@@ -244,7 +262,7 @@ enum BRNImagePickerSheetItemSize {
             if paths.count > 0 {
                 if let dirPath = paths[0] as? String {
                     let writePath = dirPath.stringByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-                    UIImagePNGRepresentation(image).writeToFile(writePath, atomically: true)
+                    UIImageJPEGRepresentation(image, 0.6).writeToFile(writePath, atomically: true)
                     
                     return NSURL(string: writePath)
                 }
@@ -373,19 +391,19 @@ enum BRNImagePickerSheetItemSize {
     // MARK: - UICollectionViewDelegateFlowLayout
     
     public func collectionView(collectionView: UICollectionView, layout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        let image = photoAtIndexPath(indexPath)
+        let asset = assets[indexPath.section]
         
         if enlargedPreviews {
-            return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: image);
+            return BRNImagePickerSheetItemSize.itemSizeForType(.Enlarged, asset:asset, indexPath: indexPath)
         }
     
-        return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: image);
+        return BRNImagePickerSheetItemSize.itemSizeForType(.Normal, asset:asset, indexPath: indexPath)
     }
     
     public func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         let inset = 2.0 * BRNImagePickerSheet.collectionViewCheckmarkInset
 
-        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: nil) : BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: nil);
+        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(.Enlarged, asset:nil, indexPath:nil) : BRNImagePickerSheetItemSize.itemSizeForType(.Normal, asset: nil, indexPath: nil)
         return CGSizeMake(BRNImageSupplementaryView.checkmarkImage.size.width, size.height)
     }
     

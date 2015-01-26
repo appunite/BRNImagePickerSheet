@@ -52,6 +52,10 @@ enum BRNImagePickerSheetItemSize {
     
     static var itemsRatioCache = [Int : CGFloat]()
 
+    static func clearCache() {
+        itemsRatioCache.removeAll(keepCapacity: false)
+    }
+    
     static func itemSizeForType(type: BRNImagePickerSheetItemSize, asset: ALAsset?, indexPath: NSIndexPath?) -> CGSize {
         var ratio: CGFloat = 1.0
 
@@ -74,6 +78,7 @@ enum BRNImagePickerSheetItemSize {
 
     static func ratioForAsset(asset: ALAsset?, indexPath: NSIndexPath) -> CGFloat {
 
+       
         if let ratio = itemsRatioCache[indexPath.section] {
             return ratio
         }
@@ -81,10 +86,10 @@ enum BRNImagePickerSheetItemSize {
         if let _asset = asset {
             let ratio = _asset.defaultRepresentation().dimensions().width / _asset.defaultRepresentation().dimensions().height;
             itemsRatioCache[indexPath.section] = ratio
-
+            
             return ratio
         }
-
+    
         return 1.0
     }
 }
@@ -101,7 +106,6 @@ enum BRNImagePickerSheetItemSize {
     public var enlargedPreviews = false
     public var delegate: BRNImagePickerSheetDelegate?
     private var assets = [ALAsset]()
-    private var photosCache = NSMutableArray()
     private var selectedPhotoIndices = [Int]()
     private var previewsPhotos: Bool {
         return (self.assets.count > 0)
@@ -503,9 +507,7 @@ enum BRNImagePickerSheetItemSize {
                         if result == nil {
                             return
                         }
-                        
                         self.assets.append(result);
-                        self.photosCache.addObject(NSNull())
                     })
                     
                 } else {
@@ -530,6 +532,7 @@ enum BRNImagePickerSheetItemSize {
             self.overlayView.alpha = 0.0
             self.tableView.frame.origin.y += CGRectGetHeight(self.tableView.frame)
             }, completion: { (finished: Bool) -> Void in
+                BRNImagePickerSheetItemSize.clearCache()
                 self.delegate?.imagePickerSheet?(self, didDismissWithButtonIndex: buttonIndex)
                 self.removeFromSuperview()
         })

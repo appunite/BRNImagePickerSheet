@@ -123,7 +123,7 @@ enum BRNImagePickerSheetItemSize {
             for index in self.selectedPhotoIndices {
                 
                 if let asset = assets[index] as ALAsset? {
-                    if let url : NSURL = asset.valueForProperty(ALAssetPropertyAssetURL) as NSURL? {
+                    if let url : NSURL = asset.valueForProperty(ALAssetPropertyAssetURL) as! NSURL? {
                         selectedPhotos.append(url)
                     }
                 }
@@ -180,7 +180,7 @@ enum BRNImagePickerSheetItemSize {
     
     // MARK: Initialization
     
-    override init() {
+    init() {
         let inset = BRNImagePickerSheet.collectionViewInset
         let layout = BRNHorizontalImagePreviewFlowLayout()
         layout.showsSupplementaryViews = false
@@ -346,7 +346,7 @@ enum BRNImagePickerSheetItemSize {
         return !(self.previewsPhotos && indexPath.row == 0)
     }
     
-    public func tableView(tableView: UITableView!, didSelectRowAtIndexPath indexPath: NSIndexPath!) {
+    public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
         
         var handle = true
@@ -375,14 +375,14 @@ enum BRNImagePickerSheetItemSize {
     }
     
     public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell: BRNImageCollectionViewCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as BRNImageCollectionViewCell
+        let cell: BRNImageCollectionViewCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! BRNImageCollectionViewCell
         cell.imageView.image = self.photoAtIndexPath(indexPath)
         
         return cell
     }
     
     public func collectionView(collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, atIndexPath indexPath: NSIndexPath) -> UICollectionReusableView {
-        let view: BRNImageSupplementaryView = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "SupplementaryView", forIndexPath: indexPath) as BRNImageSupplementaryView
+        let view: BRNImageSupplementaryView = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "SupplementaryView", forIndexPath: indexPath) as! BRNImageSupplementaryView
         view.userInteractionEnabled = false
         view.buttonInset = UIEdgeInsetsMake(0.0, BRNImagePickerSheet.collectionViewCheckmarkInset, BRNImagePickerSheet.collectionViewCheckmarkInset, 0.0)
         view.selected = contains(self.selectedPhotoIndices, indexPath.section)
@@ -423,7 +423,7 @@ enum BRNImagePickerSheetItemSize {
                 self.delegate?.imagePickerSheetWillEnlargePreviews?(self)
                 self.enlargedPreviews = true
                 
-                let layout: BRNHorizontalImagePreviewFlowLayout = self.collectionView.collectionViewLayout as BRNHorizontalImagePreviewFlowLayout
+                let layout: BRNHorizontalImagePreviewFlowLayout = self.collectionView.collectionViewLayout as! BRNHorizontalImagePreviewFlowLayout
                 layout.invalidationCenteredIndexPath = indexPath
                 
                 self.setNeedsLayout()

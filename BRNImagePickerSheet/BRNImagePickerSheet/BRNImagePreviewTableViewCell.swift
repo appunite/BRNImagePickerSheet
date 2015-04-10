@@ -36,7 +36,7 @@ import UIKit
         // Setting the frame of the collectionView this large avoids a small animation glitch when resizing the previews. You'll get a beer from @larcus94 if you'll get it to work without this workaround :)
         
         if let collectionView = self.collectionView {
-            let layout: BRNHorizontalImagePreviewFlowLayout = collectionView.collectionViewLayout as BRNHorizontalImagePreviewFlowLayout
+            let layout: BRNHorizontalImagePreviewFlowLayout = collectionView.collectionViewLayout as! BRNHorizontalImagePreviewFlowLayout
             layout.supplementaryViewBounds = self.bounds.size
             
             var collectionViewFrame = self.bounds

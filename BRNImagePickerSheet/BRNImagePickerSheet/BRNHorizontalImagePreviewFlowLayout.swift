@@ -79,7 +79,7 @@ import UIKit
         return (self.collectionView!.bounds != newBounds)
     }
     
-    override public func layoutAttributesForElementsInRect(rect: CGRect) -> [AnyObject]? {
+    override public func layoutAttributesForElementsInRect(rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         if (self.collectionView == nil || self.collectionView?.dataSource == nil) {
             return nil
         }

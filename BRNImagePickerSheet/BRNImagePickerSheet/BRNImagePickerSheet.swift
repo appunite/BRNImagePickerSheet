@@ -265,12 +265,13 @@ enum BRNImagePickerSheetItemSize {
         let paths = NSSearchPathForDirectoriesInDomains(nsDocumentDirectory, nsUserDomainMask, true)
         
         if paths.count > 0 {
-            let dirPath = paths[0]
-            let writePath = dirPath.stringByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-
-            UIImageJPEGRepresentation(image, 0.6)!.writeToFile(writePath, atomically: true)
             
-            return NSURL(string: writePath)
+            let dirURL = NSURL(string: paths[0])
+            let writeURL = dirURL!.URLByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+            
+            UIImageJPEGRepresentation(image, 0.6)!.writeToURL(writeURL, atomically: true)
+            
+            return writeURL
         }
         
         return nil
@@ -484,7 +485,7 @@ enum BRNImagePickerSheetItemSize {
                 self.overlayView.alpha = 1.0
                 }, completion: { (finished: Bool) -> Void in
                     self.delegate?.didPresentImagePickerSheet?(self)
-                    print("finished", appendNewline: false)
+                    //print("finished", appendNewline: false)
             })
         }
 

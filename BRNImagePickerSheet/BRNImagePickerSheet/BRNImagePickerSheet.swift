@@ -70,9 +70,6 @@ enum BRNImagePickerSheetItemSize {
             
         case .Enlarged:
             return CGSize(width: round(220.0 * ratio), height: 220.0);
-            
-        default:
-            return CGSize(width: 0, height: 0);
         }
     }
 
@@ -219,7 +216,7 @@ enum BRNImagePickerSheetItemSize {
         self.delegate = delegate
     }
     
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
@@ -244,14 +241,11 @@ enum BRNImagePickerSheetItemSize {
                 if let defaultRepresentation = asset.defaultRepresentation() {
                     
                     let orientation = UIImageOrientation(defaultRepresentation.orientation())
-                    
-                    if let photo = UIImage(CGImage: defaultRepresentation.fullResolutionImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
+                    let photo = UIImage(CGImage: defaultRepresentation.fullResolutionImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation)
                         
-                        if let url : NSURL = self.saveImageOnDisk(photo) {
-                            urls.append(url);
-                        }
+                    if let url = self.saveImageOnDisk(photo) {
+                        urls.append(url);
                     }
-                
                 }
             }
         }
@@ -262,19 +256,16 @@ enum BRNImagePickerSheetItemSize {
     public func saveImageOnDisk(image: UIImage) -> NSURL? {
         let nsDocumentDirectory = NSSearchPathDirectory.DocumentDirectory
         let nsUserDomainMask = NSSearchPathDomainMask.UserDomainMask
-        if let paths = NSSearchPathForDirectoriesInDomains(nsDocumentDirectory, nsUserDomainMask, true) {
-            if paths.count > 0 {
-                if let dirPath = paths[0] as? String {
-                    let writePath = dirPath.stringByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-                    UIImageJPEGRepresentation(image, 0.6).writeToFile(writePath, atomically: true)
-                    
-                    return NSURL(string: writePath)
-                }
-            }
+        let paths = NSSearchPathForDirectoriesInDomains(nsDocumentDirectory, nsUserDomainMask, true)
+        if paths.count > 0 {
+            let writePath = (paths[0] as NSString).stringByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
+            UIImageJPEGRepresentation(image, 0.6)?.writeToFile(writePath, atomically: true)
+            
+            return NSURL(string: writePath)
         }
         return nil
     }
-    
+
     // MARK: - UITableViewDataSource
     
     public func numberOfSectionsInTableView(tableView: UITableView) -> Int {
@@ -385,7 +376,7 @@ enum BRNImagePickerSheetItemSize {
         let view: BRNImageSupplementaryView = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "SupplementaryView", forIndexPath: indexPath) as! BRNImageSupplementaryView
         view.userInteractionEnabled = false
         view.buttonInset = UIEdgeInsetsMake(0.0, BRNImagePickerSheet.collectionViewCheckmarkInset, BRNImagePickerSheet.collectionViewCheckmarkInset, 0.0)
-        view.selected = contains(self.selectedPhotoIndices, indexPath.section)
+        view.selected = self.selectedPhotoIndices.contains(indexPath.section)
         
         self.supplementaryViews[indexPath.section] = view
         
@@ -405,8 +396,6 @@ enum BRNImagePickerSheetItemSize {
     }
     
     public func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        let inset = 2.0 * BRNImagePickerSheet.collectionViewCheckmarkInset
-
         let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(.Enlarged, asset:nil, indexPath:nil) : BRNImagePickerSheetItemSize.itemSizeForType(.Normal, asset: nil, indexPath: nil)
         return CGSizeMake(BRNImageSupplementaryView.checkmarkImage.size.width, size.height)
     }
@@ -414,7 +403,7 @@ enum BRNImagePickerSheetItemSize {
     // MARK: - UICollectionViewDelegate
     
     public func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-        let selected = contains(self.selectedPhotoIndices, indexPath.section)
+        let selected = self.selectedPhotoIndices.contains(indexPath.section)
         
         if !selected {
             self.selectedPhotoIndices.append(indexPath.section)
@@ -451,7 +440,7 @@ enum BRNImagePickerSheetItemSize {
             }
         }
         else {
-            self.selectedPhotoIndices.removeAtIndex(find(self.selectedPhotoIndices, indexPath.section)!)
+            self.selectedPhotoIndices.removeAtIndex(self.selectedPhotoIndices.indexOf(indexPath.section)!)
             self.reloadButtonTitles()
         }
         
@@ -483,7 +472,7 @@ enum BRNImagePickerSheetItemSize {
                 self.overlayView.alpha = 1.0
                 }, completion: { (finished: Bool) -> Void in
                     self.delegate?.didPresentImagePickerSheet?(self)
-                    println("finished")
+                    print("finished")
             })
         }
 
@@ -512,7 +501,7 @@ enum BRNImagePickerSheetItemSize {
                     
                 } else {
                     dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                        self.assets = reverse(self.assets)
+                        self.assets = Array(self.assets.reverse())
                         self.tableView.reloadData();
                         self.collectionView.reloadData();
                     })
@@ -577,7 +566,7 @@ enum BRNImagePickerSheetItemSize {
     override public func layoutSubviews() {
         super.layoutSubviews()
         
-        var bounds = self.bounds
+        let bounds = self.bounds
         
         self.overlayView.frame = bounds
         

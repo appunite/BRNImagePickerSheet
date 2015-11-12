@@ -27,7 +27,7 @@ import UIKit
         self.scrollDirection = .Horizontal
     }
 
-    required public init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -79,7 +79,7 @@ import UIKit
         return (self.collectionView!.bounds != newBounds)
     }
     
-    override public func layoutAttributesForElementsInRect(rect: CGRect) -> [AnyObject]? {
+    public override func layoutAttributesForElementsInRect(rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
         if (self.collectionView == nil || self.collectionView?.dataSource == nil) {
             return nil
         }
@@ -113,7 +113,7 @@ import UIKit
         return allAttributes
     }
     
-    override public func layoutAttributesForItemAtIndexPath(indexPath: NSIndexPath) -> UICollectionViewLayoutAttributes! {
+    override public func layoutAttributesForItemAtIndexPath(indexPath: NSIndexPath) -> UICollectionViewLayoutAttributes? {
         return self.layoutAttributesForItemAtIndexPath(indexPath, frame: nil)
     }
     

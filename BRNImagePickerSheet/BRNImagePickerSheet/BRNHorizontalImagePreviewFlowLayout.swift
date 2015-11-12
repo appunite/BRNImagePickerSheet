@@ -40,7 +40,7 @@ import UIKit
         
         let collectionView = self.collectionView!
         let dataSource = collectionView.dataSource!
-        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as UICollectionViewDelegateFlowLayout
+        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as! UICollectionViewDelegateFlowLayout
         
         // TODO: really necessary to have to dataSources?
         
@@ -86,7 +86,7 @@ import UIKit
         
         let collectionView = self.collectionView!
         let dataSource = collectionView.dataSource!
-        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as UICollectionViewDelegateFlowLayout
+        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as! UICollectionViewDelegateFlowLayout
         
         // TODO: really necessary to have to dataSources?
         
@@ -136,7 +136,7 @@ import UIKit
         
         let collectionView = self.collectionView!
         let dataSource = collectionView.dataSource!
-        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as UICollectionViewDelegateFlowLayout
+        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as! UICollectionViewDelegateFlowLayout
         
         // TODO: really necessary to have to dataSources?
         
@@ -180,7 +180,7 @@ import UIKit
         }
         
         let collectionView = self.collectionView!
-        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as UICollectionViewDelegateFlowLayout
+        let layoutDataSource: UICollectionViewDelegateFlowLayout = collectionView.dataSource! as! UICollectionViewDelegateFlowLayout
         
         var contentOffset = collectionView.contentOffset
         contentOffset.x += collectionView.contentInset.left

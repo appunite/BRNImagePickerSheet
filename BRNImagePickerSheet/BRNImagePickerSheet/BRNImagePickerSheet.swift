@@ -50,11 +50,17 @@ extension UIImageOrientation {
 enum BRNImagePickerSheetItemSize {
     case Normal, Enlarged
     
-    static func itemSizeForType(type: BRNImagePickerSheetItemSize, image: UIImage?) -> CGSize {
+    static var itemsRatioCache = [Int : CGFloat]()
+
+    static func clearCache() {
+        itemsRatioCache.removeAll(keepCapacity: false)
+    }
+    
+    static func itemSizeForType(type: BRNImagePickerSheetItemSize, asset: ALAsset?, indexPath: NSIndexPath?) -> CGSize {
         var ratio: CGFloat = 1.0
 
-        if let _image = image {
-            ratio = _image.size.width/_image.size.height
+        if let _indexPath = indexPath {
+            ratio = ratioForAsset(asset, indexPath: _indexPath)
         }
 
         switch type {
@@ -68,6 +74,23 @@ enum BRNImagePickerSheetItemSize {
         default:
             return CGSize(width: 0, height: 0);
         }
+    }
+
+    static func ratioForAsset(asset: ALAsset?, indexPath: NSIndexPath) -> CGFloat {
+
+       
+        if let ratio = itemsRatioCache[indexPath.section] {
+            return ratio
+        }
+
+        if let _asset = asset {
+            let ratio = _asset.defaultRepresentation().dimensions().width / _asset.defaultRepresentation().dimensions().height;
+            itemsRatioCache[indexPath.section] = ratio
+            
+            return ratio
+        }
+    
+        return 1.0
     }
 }
 
@@ -83,7 +106,6 @@ enum BRNImagePickerSheetItemSize {
     public var enlargedPreviews = false
     public var delegate: BRNImagePickerSheetDelegate?
     private var assets = [ALAsset]()
-    private var photosCache = NSMutableArray()
     private var selectedPhotoIndices = [Int]()
     private var previewsPhotos: Bool {
         return (self.assets.count > 0)
@@ -101,7 +123,7 @@ enum BRNImagePickerSheetItemSize {
             for index in self.selectedPhotoIndices {
                 
                 if let asset = assets[index] as ALAsset? {
-                    if let url : NSURL = asset.valueForProperty(ALAssetPropertyAssetURL) as NSURL? {
+                    if let url : NSURL = asset.valueForProperty(ALAssetPropertyAssetURL) as! NSURL? {
                         selectedPhotos.append(url)
                     }
                 }
@@ -158,7 +180,7 @@ enum BRNImagePickerSheetItemSize {
     
     // MARK: Initialization
     
-    override init() {
+    init() {
         let inset = BRNImagePickerSheet.collectionViewInset
         let layout = BRNHorizontalImagePreviewFlowLayout()
         layout.showsSupplementaryViews = false
@@ -223,7 +245,7 @@ enum BRNImagePickerSheetItemSize {
                     
                     let orientation = UIImageOrientation(defaultRepresentation.orientation())
                     
-                    if let photo = UIImage(CGImage: defaultRepresentation.fullScreenImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
+                    if let photo = UIImage(CGImage: defaultRepresentation.fullResolutionImage().takeUnretainedValue(), scale: CGFloat(defaultRepresentation.scale()), orientation: orientation) {
                         
                         if let url : NSURL = self.saveImageOnDisk(photo) {
                             urls.append(url);
@@ -244,7 +266,7 @@ enum BRNImagePickerSheetItemSize {
             if paths.count > 0 {
                 if let dirPath = paths[0] as? String {
                     let writePath = dirPath.stringByAppendingPathComponent(NSProcessInfo.processInfo().globallyUniqueString)
-                    UIImagePNGRepresentation(image).writeToFile(writePath, atomically: true)
+                    UIImageJPEGRepresentation(image, 0.6).writeToFile(writePath, atomically: true)
                     
                     return NSURL(string: writePath)
                 }
@@ -324,7 +346,7 @@ enum BRNImagePickerSheetItemSize {
         return !(self.previewsPhotos && indexPath.row == 0)
     }
     
-    public func tableView(tableView: UITableView!, didSelectRowAtIndexPath indexPath: NSIndexPath!) {
+    public func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         tableView.deselectRowAtIndexPath(indexPath, animated: true)
         
         var handle = true
@@ -353,14 +375,14 @@ enum BRNImagePickerSheetItemSize {
     }
     
     public func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        let cell: BRNImageCollectionViewCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as BRNImageCollectionViewCell
+        let cell: BRNImageCollectionViewCell = collectionView.dequeueReusableCellWithReuseIdentifier("Cell", forIndexPath: indexPath) as! BRNImageCollectionViewCell
         cell.imageView.image = self.photoAtIndexPath(indexPath)
         
         return cell
     }
     
     public func collectionView(collectionView: UICollectionView, viewForSupplementaryElementOfKind kind: String, atIndexPath indexPath: NSIndexPath) -> UICollectionReusableView {
-        let view: BRNImageSupplementaryView = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "SupplementaryView", forIndexPath: indexPath) as BRNImageSupplementaryView
+        let view: BRNImageSupplementaryView = collectionView.dequeueReusableSupplementaryViewOfKind(UICollectionElementKindSectionHeader, withReuseIdentifier: "SupplementaryView", forIndexPath: indexPath) as! BRNImageSupplementaryView
         view.userInteractionEnabled = false
         view.buttonInset = UIEdgeInsetsMake(0.0, BRNImagePickerSheet.collectionViewCheckmarkInset, BRNImagePickerSheet.collectionViewCheckmarkInset, 0.0)
         view.selected = contains(self.selectedPhotoIndices, indexPath.section)
@@ -373,19 +395,19 @@ enum BRNImagePickerSheetItemSize {
     // MARK: - UICollectionViewDelegateFlowLayout
     
     public func collectionView(collectionView: UICollectionView, layout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
-        let image = photoAtIndexPath(indexPath)
+        let asset = assets[indexPath.section]
         
         if enlargedPreviews {
-            return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: image);
+            return BRNImagePickerSheetItemSize.itemSizeForType(.Enlarged, asset:asset, indexPath: indexPath)
         }
     
-        return BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: image);
+        return BRNImagePickerSheetItemSize.itemSizeForType(.Normal, asset:asset, indexPath: indexPath)
     }
     
     public func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         let inset = 2.0 * BRNImagePickerSheet.collectionViewCheckmarkInset
 
-        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Enlarged, image: nil) : BRNImagePickerSheetItemSize.itemSizeForType(BRNImagePickerSheetItemSize.Normal, image: nil);
+        let size = enlargedPreviews ? BRNImagePickerSheetItemSize.itemSizeForType(.Enlarged, asset:nil, indexPath:nil) : BRNImagePickerSheetItemSize.itemSizeForType(.Normal, asset: nil, indexPath: nil)
         return CGSizeMake(BRNImageSupplementaryView.checkmarkImage.size.width, size.height)
     }
     
@@ -401,7 +423,7 @@ enum BRNImagePickerSheetItemSize {
                 self.delegate?.imagePickerSheetWillEnlargePreviews?(self)
                 self.enlargedPreviews = true
                 
-                let layout: BRNHorizontalImagePreviewFlowLayout = self.collectionView.collectionViewLayout as BRNHorizontalImagePreviewFlowLayout
+                let layout: BRNHorizontalImagePreviewFlowLayout = self.collectionView.collectionViewLayout as! BRNHorizontalImagePreviewFlowLayout
                 layout.invalidationCenteredIndexPath = indexPath
                 
                 self.setNeedsLayout()
@@ -485,9 +507,7 @@ enum BRNImagePickerSheetItemSize {
                         if result == nil {
                             return
                         }
-                        
                         self.assets.append(result);
-                        self.photosCache.addObject(NSNull())
                     })
                     
                 } else {
@@ -512,6 +532,7 @@ enum BRNImagePickerSheetItemSize {
             self.overlayView.alpha = 0.0
             self.tableView.frame.origin.y += CGRectGetHeight(self.tableView.frame)
             }, completion: { (finished: Bool) -> Void in
+                BRNImagePickerSheetItemSize.clearCache()
                 self.delegate?.imagePickerSheet?(self, didDismissWithButtonIndex: buttonIndex)
                 self.removeFromSuperview()
         })
